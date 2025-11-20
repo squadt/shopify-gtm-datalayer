@@ -3,6 +3,8 @@ const enableUserData = true;
 const enableDebugger = false;
 const defaultCurrency = "EUR";
 const storeCountryCode = "DE";
+const storeIncludesTax = true;
+const taxRate = 0.19;
 
 // https://shopify.dev/docs/api/web-pixels-api/standard-events/
 
@@ -56,6 +58,13 @@ api.customerPrivacy.subscribe("visitorConsentCollected", (event) => {
   f.parentNode.insertBefore(j, f);
 })(window, document, "script", "dataLayer", gtmID);
 
+function calculateNetValue(grossValue) {
+  if (storeIncludesTax) {
+    return Math.round((grossValue / (1 + taxRate)) * 100) / 100;
+  }
+  return grossValue;
+}
+
 // Shopify Events
 function pushGenericData(eventName, srcEvent, data) {
   const doc = srcEvent.context.document;
@@ -67,6 +76,7 @@ function pushGenericData(eventName, srcEvent, data) {
     client_id: srcEvent.clientId,
     page_location: doc.location.href,
     page_pathname: doc.location.pathname,
+    page_hostname: doc.location.hostname,
     page_title: doc.title,
     page_referrer: doc.referrer,
     ...data,
@@ -90,6 +100,7 @@ function getUserData(srcEvent) {
   const userData = {
     email: checkout?.email,
     phone_number: checkout?.shippingAddress?.phone || checkout?.phone,
+    customer_id: checkout?.order?.customer?.id,
     address: {
       first_name: checkout?.shippingAddress?.firstName,
       last_name: checkout?.shippingAddress?.lastName,
@@ -227,7 +238,7 @@ analytics.subscribe("checkout_completed", (event) => {
     transaction_id: checkout?.order?.id,
     value: checkout?.subtotalPrice?.amount,
     value_gross: checkout?.totalPrice?.amount,
-    value_net: checkout?.subtotalPrice?.amount - checkout?.totalTax?.amount,
+    value_net: calculateNetValue(checkout?.subtotalPrice?.amount),
     currency: checkout?.currencyCode || defaultCurrency,
     coupon: checkout?.discountApplications?.map((x) => x.title).join(", "),
     shipping: checkout?.shippingLine?.price?.amount,
@@ -261,6 +272,7 @@ analytics.subscribe("search_submitted", (event) => {
 
   pushEcommerceData("search", event, {
     search_term: searchResult?.query,
+    items: searchResult?.productVariants?.map(itemFromVariant),
   });
 });
 

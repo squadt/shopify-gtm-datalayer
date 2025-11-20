@@ -29,6 +29,8 @@ It includes GTM, dataLayer, consent modes (Google & Bing/MS Advertising), and va
 - **enableDebugger**: Set to `true` to enable console logging for debugging, `false` to disable.
 - **defaultCurrency**: Set the default currency code (e.g., `"EUR"`).
 - **storeCountryCode**: Set the store's country code (e.g., `"DE"`).
+- **storeIncludesTax**: Set to `true` if the store is configured to use tax-inclusive pricing, `false` if tax is excluded.
+- **taxRate**: Set the general tax rate (e.g. `0.19` for 19% VAT). Mixed tax rates are not supported.
 
 ## Customizing GA4
 
@@ -50,4 +52,4 @@ It includes GTM, dataLayer, consent modes (Google & Bing/MS Advertising), and va
 - In the purchase event, there are three values available:
   - `ecommerce.value` - subtotal price: price before duties, shipping, and taxes (only if VAT not included)
   - `ecommerce.value_gross` - total price: sum of all the prices of all the items, including duties, taxes, and discounts
-  - `ecommerce.value_net` - subtotal price without taxes (subtotalPrice - totalTax)
+  - `ecommerce.value_net` - subtotal price without taxes (value - taxRate)
